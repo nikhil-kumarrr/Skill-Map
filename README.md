@@ -164,7 +164,7 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
-Open **http://localhost:8501**. If the API is not running, the app reads `lmis_bundle.pkl` directly. The Assistant uses a local SQLite copy (`skillmap_local.db`) built on first use.
+Open **https://skill-map-sih.streamlit.app/**. If the API is not running, the app reads `lmis_bundle.pkl` directly. The Assistant uses a local SQLite copy (`skillmap_local.db`) built on first use.
 
 ### Option B - Full stack (MySQL + FastAPI + Streamlit)
 
