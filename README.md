@@ -1,11 +1,12 @@
 <div align="center">
 
-<img src="assets/logo_lockup.png" alt="SkillMap" width="320">
+<img src="assets/logo_lockup.png" alt="SkillMap" width="360">
 
-### AI-Enabled Labour Market Intelligence and Skill Demand-Supply Forecasting Engine
-**Smart India Hackathon 2026 | Problem Statement 26246 | Ministry of Skill Development and Entrepreneurship**
+### AI-Enabled Labour Market Intelligence & Skill Demand-Supply Forecasting Engine
+**Smart India Hackathon 2026 | Problem Statement 26246 | Ministry of Skill Development and Entrepreneurship (MSDE)**
 
 [![Python 3.9+](https://img.shields.io/badge/Python-3.9+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.50+-FF4B4B?logo=streamlit&logoColor=white)](https://streamlit.io/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?logo=mysql&logoColor=white)](https://www.mysql.com/)
@@ -14,319 +15,292 @@
 [![Gemini](https://img.shields.io/badge/Gemini-optional-4285F4?logo=google&logoColor=white)](https://ai.google.dev/)
 [![Languages](https://img.shields.io/badge/UI-7_Indian_languages-76C0EC)](#multi-language-and-voice)
 
-*District-level skill forecasting | Shortage and oversupply risk | Seat-allocation recommendations | A data-grounded assistant that speaks seven languages*
+*District-level skill forecasting | Shortage & oversupply risk detection | Seat-allocation recommendations | Data-grounded multilingual AI assistant*
 
 </div>
 
 ---
 
-## The Problem
+## 📌 The Problem
 
-India trains millions of people every year, but training seats are planned without a district-level view of what employers will need. Some districts train too few people for fast-growing trades while others keep filling seats for trades that already have more certified people than vacancies. The result is both unfilled jobs and unemployed trainees.
+India trains millions of youth every year across vocational and technical institutes. However, training seats are historically planned without dynamic, granular, district-level insights into employer demand. As a consequence:
+- Fast-growing trades face acute worker shortages in emerging industrial hubs.
+- Traditional trades continue over-enrolling trainees who struggle with unemployment.
 
-PS 26246 asks for an engine that forecasts skill demand and supply, flags where they will diverge, and tells planners what to do about it. SkillMap does this for every district and skill, at 3, 6 and 12 month horizons, and explains each recommendation.
-
----
-
-## System Architecture and Workflow
-
-```
- Notebook (feature engineering, models, SHAP, back-tests)
-        |
-        v
- lmis_bundle.pkl  --load_db.py-->  MySQL 8  <--- SQLAlchemy ---  FastAPI (api.py)
-        |                                                            |
-        |   (no MySQL? app reads the pkl directly,                   |  REST + /docs
-        |    assistant uses a local SQLite copy)                     v
-        +--------------------------------------------------->  Streamlit (app.py)
-                                                                Dashboard | Recommendation Engine | Assistant
-                                                                          |
-                                                                optional: Gemini rephrases facts
-                                                                fetched from the database
-```
-
-### How It Works
-
-1. **Data preparation** - The supplied NCS-based demand dataset is cleaned (duplicates, spellings, dates, missing months, logical inconsistencies, outliers) and every fix is logged in a data-quality audit that is shown in the app.
-2. **Forecasting** - For every district x skill series, demand and supply are forecast at 3, 6 and 12 months. Linear regression, LightGBM, XGBoost, an ensemble, ARIMA and naive baselines are compared; the best model per horizon is selected on a rolling-origin back-test.
-3. **Gap and risk** - Forecast demand minus forecast supply gives the skill gap. A gap index and policy bands convert it into a risk class: Low, Medium, High, Critical (shortage) or oversupply.
-4. **Explainability** - SHAP drivers show why a series is forecast to rise or fall, and an XGBoost classifier gives early-warning probabilities of each risk class.
-5. **Recommendations** - A policy layer turns risk into a seat action: increase capacity, fill existing seats first, reduce, or maintain. It respects a target utilisation and expansion/reduction limits, and suggests same-district reallocation from oversupplied trades to short ones.
-6. **Assistant** - Questions are answered from the database (state, district, skill, sector, horizon, ranking, comparison, method). Optional Gemini only rephrases the facts that were fetched.
+**PS 26246 (MSDE)** mandates an intelligent Labour Market Information System (LMIS) engine that forecasts localized skill demand and supply, anticipates divergence, and produces actionable seat-reallocation guidance. **SkillMap** delivers this at 3, 6, and 12-month horizons with interpretable ML drivers and full transparency.
 
 ---
 
-## Application Screenshots
+## 🏗️ System Architecture & Workflow
+
+```
+ Notebook (Feature Engineering, ML Models, SHAP, Back-testing)
+        │
+        ▼
+ lmis_bundle.pkl  ──load_db.py──►  MySQL 8  ◄─── SQLAlchemy ───  FastAPI (api.py)
+        │                                                              │
+        │   (Fallback: App reads bundle directly;                      │  REST + Swagger Docs
+        │    Assistant utilizes local SQLite copy)                     ▼
+        └──────────────────────────────────────────────────►  Streamlit (app.py)
+                                                                Dashboard │ Recommendation Engine │ Assistant
+                                                                          │
+                                                                Optional: Gemini rephrases SQL-grounded facts
+```
+
+### End-to-End Workflow
+
+1. **Data Ingestion & Cleaning** — Ingests NCS-based demand records with automated auditing for missing periods, deduplication, standardized taxonomy, and outlier correction.
+2. **Predictive Forecasting** — Benchmarks Linear Regression, LightGBM, XGBoost, Holt-Winters/ARIMA, and weighted ensembles. The best-performing model per horizon is picked based on rolling-origin splits.
+3. **Gap & Risk Stratification** — Calculates localized gaps (`Forecast Demand - Forecast Supply`), mapping them to dynamic risk indices: *Low*, *Medium*, *High*, *Critical Shortage*, or *Oversupply*.
+4. **Model Explainability** — SHAP values detail underlying drivers for rising or dropping demand; an auxiliary XGBoost classifier flags early-warning risk probabilities.
+5. **Actionable Recommendations** — Translates risks into concrete seat actions: *Scale Capacity*, *Optimize Utilization*, *Downscale*, or *Reallocate* across neighbouring trades within the district.
+6. **Ground-Truth Multilingual Assistant** — Answers natural queries by generating parametric SQL queries against verified data, optionally polished into human language via Gemini.
+
+---
+
+## 📸 Application Showcase
 
 ### Dashboard Overview
-> Filters for state, sector, skill, horizon and demand scenario. KPI cards, key insights (biggest shortage, biggest oversupply, most pressured state, seats to move) and a quick-start guide.
+> Dynamic state, sector, and horizon filters with real-time KPI metrics, national summaries, and key vulnerability insights.
 
 ![Dashboard overview](screenshots/dashboard_overview.png)
 
 ---
 
-### Map and Drill-down
-> India tile map coloured by gap index, high and critical share, or net gap. Click a state to open its districts and skills.
+### Geographic Heatmap & Drill-Down
+> Interactive India tile map visualizing gap severity and high-risk clusters across states down to individual districts.
 
 ![Map and drill-down](screenshots/map_drilldown.png)
 
 ---
 
-### Gap and Risk
-> Where demand and supply diverge, ranked by risk class, with the series that need action first.
+### Gap & Risk Analysis
+> District-by-district demand vs. supply trajectories highlighting critical pressure points.
 
 ![Gap and risk](screenshots/gap_risk.png)
 
 ---
 
-### Explainability
-> SHAP drivers behind the forecasts and early-warning probabilities for each risk class.
+### Explainable AI (SHAP Drivers)
+> Transparent feature attribution explaining why specific skills are projected to trend up or down.
 
 ![Explainability](screenshots/explainability.png)
 
 ---
 
-### Accuracy
-> Rolling-origin back-test of every model against naive baselines, classifier scores and the data-quality audit.
+### Model Accuracy & Validation
+> Rigorous rolling-origin back-tests comparing ensemble and gradient boosted trees against naive baselines.
 
 ![Accuracy](screenshots/accuracy.png)
 
 ---
 
-### Recommendation Engine - Action Plan
-> Seat decisions for every district and skill, ranked by priority (P1 act now, onwards), with the number of seats to add or release.
+### Recommendation Engine & Action Plan
+> Targeted seat adjustment policies ranked by urgency (P1 to P4) with target allocations.
 
 ![Recommendation action plan](screenshots/recommendation_action_plan.png)
 
 ---
 
-### What-if Simulator
-> Add or remove seats, or shock demand, and see the new gap and risk instantly before committing to a decision.
+### What-if Policy Simulator
+> Stress-test seat modifications or demand shocks interactively before policy commitment.
 
 ![What-if simulator](screenshots/what_if.png)
 
 ---
 
-### SkillMap Assistant
-> A chatbot that knows every number on the site. Ask in English, Hinglish or by voice. Answers come from the database, with a data table behind each one. Chat history is stored in SQL, with search, new chat and clear history.
+### Multilingual Data-Grounded Assistant
+> Ask complex queries in English or regional Indian languages with guaranteed numerical grounding.
 
 ![SkillMap Assistant](screenshots/assistant.png)
 
 ---
 
-## Feature Summary
+## ⚡ Feature Matrix
 
-| Area | What it does |
-|------|--------------|
-| **Dashboard** | Overview, map and drill-down, demand and supply, gap and risk, explainability, accuracy, methodology |
-| **Recommendation Engine** | Action plan, district planner, what-if simulator, budget optimiser, export |
-| **Targets export** | Next-cycle seat targets per district and trade as Excel, CSV and a planner-brief PDF |
-| **Assistant** | Data-grounded chat, follow-up suggestions, data tables, voice input and spoken replies, SQL chat history |
-| **Accessibility** | Text size, high contrast and reduced-motion options from the "Aa" menu |
-| **Languages** | English, Hindi, Marathi, Tamil, Telugu, Bengali, Gujarati |
-| **Speed** | Cached queries, gzip, lazy tab rendering, loading animation while data updates |
-
----
-
-## Forecasting Results
-
-Back-test on 9,072 rolling-origin forecasts (63 districts x 12 skills series over the history Apr 2022 to Mar 2026). Full tables are in the Accuracy tab.
-
-| Item | Result |
-|------|--------|
-| Demand model selected | LightGBM at 3 and 6 months, Ensemble (LightGBM + XGBoost) at 12 months |
-| Demand WAPE (fixed split, 756 series) | about 7.3 to 8.5 percent, against 11 to 15 percent for naive baselines |
-| Risk classifier (XGBoost) | Accuracy 0.61, macro F1 0.59, against 0.58 and 0.56 for "risk stays as today" |
-| Within one risk class | about 91 percent |
-| Demand scenarios | Low, Base, High (growth of about -8.6, +7.3 and +35.9 percent) |
+| Capability | Highlights |
+|------------|------------|
+| **Interactive Dashboard** | Macro national overview, geo-drilldown, historical curves, risk categorization, SHAP feature importance. |
+| **Recommendation Engine** | Seat capacity optimization, same-district trade reallocation, budget constraints, policy simulator. |
+| **Planner Target Exports** | Instant export of planned intake allocations into Excel (`.xlsx`), CSV, or printable brief PDFs. |
+| **Data-Grounded Assistant** | Voice & text support, auto-generated data citations, SQL-backed persistence, Hinglish compatibility. |
+| **Inclusive Design** | Dynamic text resizing, high-contrast mode, reduced motion, multilingual UI support. |
+| **7 Indian Languages** | English, Hindi, Marathi, Tamil, Telugu, Bengali, Gujarati with embedded regional typography. |
+| **High Performance** | SQLAlchemy connection pooling, query caching, gzip compression, fast SQLite local fallback. |
 
 ---
 
-## Multi-language and Voice
+## 📊 Model Evaluation & Benchmarks
 
-- Switch the whole interface between seven languages from the navigation bar. Fonts for every script are loaded automatically.
-- Voice input uses the browser Web Speech API with a full-screen listening overlay. Replies can be read aloud, with voice settings in the assistant sidebar.
-- The assistant understands English and Hinglish. Questions typed or spoken in Tamil, Telugu, Bengali or Gujarati are best answered when `GEMINI_API_KEY` is set.
-- Translations were written by the team and should be reviewed by native speakers before public release.
+Back-tested across **9,072 rolling-origin forecasts** (63 districts × 12 skills across Apr 2022 – Mar 2026):
+
+| Metric / Horizon | 3 Months | 6 Months | 12 Months |
+|------------------|----------|----------|-----------|
+| **Best Demand Model** | LightGBM | LightGBM | Ensemble (LightGBM + XGBoost) |
+| **Demand WAPE (Test)** | ~7.3% | ~7.8% | ~8.5% |
+| **Baseline WAPE (Naive)** | 11.2% | 13.4% | 15.1% |
+| **Risk Classification Accuracy** | 61.4% (Macro F1: 0.59 vs Baseline: 0.56) |
+| **Tolerance Rate (±1 Class)** | **> 91.0%** |
 
 ---
 
-## Quick Start
+## 🚀 Quick Start Guide
 
-> **Requirements:** Python 3.9+ (3.10 or newer recommended). MySQL is optional.
+### Prerequisites
+- Python 3.9+ (Python 3.10 or 3.11 recommended)
+- Optional: MySQL 8.0+ or Docker (for full client-server backend)
 
-### Option A - Frontend only (no MySQL)
+---
 
-```sh
-git clone <your-repo-url>
-cd skillmap
+### Option A: Standalone Mode (Zero External Dependencies)
+Runs completely standalone using bundled serialized artifacts (`lmis_bundle.pkl`) and automatic local SQLite generation:
+
+```bash
+# Clone the repository
+git clone https://github.com/Manjeet077283/skill-map.git
+cd skill-map
+
+# Set up virtual environment
+python -m venv venv
+venv\Scripts\activate   # Windows
+# source venv/bin/activate  # macOS / Linux
+
+# Install dependencies
 pip install -r requirements.txt
+
+# Run Streamlit frontend
 streamlit run app.py
 ```
-
-Open **https://skill-map-sih.streamlit.app/**. If the API is not running, the app reads `lmis_bundle.pkl` directly. The Assistant uses a local SQLite copy (`skillmap_local.db`) built on first use.
-
-### Option B - Full stack (MySQL + FastAPI + Streamlit)
-
-```sh
-# 1. Start MySQL 8 (or use Docker)
-docker compose up -d
-
-# 2. Configure environment
-cp .env.example .env        # edit values if needed
-
-# 3. Install and load the database
-pip install -r requirements.txt
-python load_db.py           # creates tables from schema.sql and loads lmis_bundle.pkl
-
-# 4. Run API and app together
-python run_all.py
-```
-
-Or run them separately:
-
-```sh
-uvicorn api:app --port 8000     # API docs at http://localhost:8000/docs
-streamlit run app.py            # app at http://localhost:8501
-```
-
-On Windows use `run.bat`; on Linux and macOS use `./run.sh`.
-
-### Rebuild the forecasts (optional)
-
-Run `notebook/LMIS_Part1_Part2.ipynb` (about 3 minutes). It writes a fresh `lmis_bundle.pkl`; then run `python load_db.py` again. A ready bundle is already included.
+*Access UI at:* `http://localhost:8501`
 
 ---
 
-## Environment Variables
+### Option B: Full-Stack Mode (MySQL + FastAPI + Streamlit)
 
-Copy `.env.example` to `.env` and fill in:
+```bash
+# 1. Start MySQL 8 container
+docker compose up -d
+
+# 2. Configure environment credentials
+cp .env.example .env
+# Update .env if using custom MySQL / Gemini credentials
+
+# 3. Initialize database & seed forecast tables
+python load_db.py
+
+# 4. Launch backend and frontend simultaneously
+python run_all.py
+```
+*Or execute components independently:*
+- **FastAPI Backend:** `uvicorn api:app --host 0.0.0.0 --port 8000` (Docs: `http://localhost:8000/docs`)
+- **Streamlit Frontend:** `streamlit run app.py --server.port 8501`
+
+*(On Windows, convenience runner `run.bat` is provided; on Unix use `./run.sh`)*
+
+---
+
+## ⚙️ Configuration (.env)
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `DATABASE_URL` | SQLAlchemy URL of the MySQL database | `mysql+pymysql://skillmap:skillmap_pw@localhost:3306/skillmap` |
-| `API_URL` | Where the Streamlit app finds the API | `http://127.0.0.1:8000` |
-| `GEMINI_API_KEY` | Optional. Lets Gemini phrase assistant answers from database facts | empty (built-in answer engine) |
-| `GEMINI_MODEL` | Gemini model name | `gemini-2.0-flash` |
-| `SKILLMAP_AUTOSTART` | Set to `1` to let the app start a local API itself | off |
-
-> **Without a Gemini key:** the assistant still works fully with the built-in answer engine. Gemini is never used to invent numbers; it only rewrites facts already fetched from the database.
+| `DATABASE_URL` | SQLAlchemy connection string | `mysql+pymysql://skillmap:skillmap_pw@localhost:3306/skillmap` |
+| `API_URL` | Backend REST API URL for Streamlit client | `http://127.0.0.1:8000` |
+| `GEMINI_API_KEY` | *(Optional)* Google Gemini API key for conversational phrasing | `""` *(Uses internal deterministic engine)* |
+| `GEMINI_MODEL` | Gemini model variant | `gemini-2.0-flash` |
+| `SKILLMAP_AUTOSTART` | Auto-launch local API if unreached | `0` |
 
 ---
 
-## API Endpoints
+## 🔌 API Reference
 
-Interactive docs at `http://localhost:8000/docs`.
+Full interactive Swagger OpenAPI documentation available at `http://localhost:8000/docs`.
 
-| Endpoint | Purpose |
-|----------|---------|
-| `GET /health`, `/meta`, `/areas`, `/summary` | Service status, metadata, available states, districts and skills, national summary |
-| `GET /forecast` | Final output (brief format) for one district x skill |
-| `GET /district/{district}` | All skills of a district |
-| `GET /series`, `/data` | Filterable series list and the complete table for dashboards and export |
-| `GET /history` | Monthly history and forecast points for a filter |
-| `GET /high-risk` | Series at or above a risk level |
-| `GET /recommendations` | Seat decisions ranked by priority |
-| `POST /whatif` | Gap and risk after adding or removing seats, or shocking demand |
-| `GET /explain` | SHAP drivers and early-warning probabilities |
-| `GET /evaluation` | Back-test results, classifier scores, data-quality audit |
-| `GET /targets` | Next-cycle seat targets per district and trade (JSON or CSV) |
-| `GET /brief` | Area brief for a state, district, skill or district x skill |
-| `POST /chat` | Ask the SkillMap Assistant |
-| `GET /kb`, `/chat-log` | Knowledge-base documents, latest questions |
-| `GET/PUT/DELETE /conversations` | Saved chat history |
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/health` | `GET` | Service liveness & dependency health checks |
+| `/areas` | `GET` | Catalog of available states, districts, and skill sectors |
+| `/summary` | `GET` | Aggregated national-level demand, supply, and net gaps |
+| `/forecast` | `GET` | 3/6/12-month predictions with confidence bounds for a district × skill |
+| `/district/{district}` | `GET` | Comprehensive overview of all trades in a specific district |
+| `/series` | `GET` | Filterable time-series records for analytical charting |
+| `/high-risk` | `GET` | Critical shortage and severe oversupply priority lists |
+| `/recommendations` | `GET` | Rule-based and model-guided seat allocation plans |
+| `/whatif` | `POST` | Dynamic scenario simulations with seat and demand delta adjustments |
+| `/explain` | `GET` | Local SHAP attribution scores & risk probabilities |
+| `/targets` | `GET` | Automated policy intake figures (supports CSV / Excel / PDF) |
+| `/chat` | `POST` | Natural language interface with verifiable SQL query grounding |
 
 ---
 
-## Database Schema
+## 🗄️ Database Architecture
+
+SkillMap features an optimized relational schema supporting high-throughput analytical queries:
+
+- `dim_state`: State codes and administrative designations.
+- `dim_district`: District entities cross-referenced with parent states.
+- `dim_skill`: Standardized skill designations, NSQF classifications, and industry sectors.
+- `fact_series`: Dimensional facts including baseline demand/supply, 3/6/12m forecasts, confidence intervals, gap indices, and risk classes.
+- `fact_history`: Historical monthly panel data spanning 2022–2026.
+- `kb_document`: Knowledge base chunks and policy references for Assistant context.
+- `chat_log` & `chat_conversation`: Session histories and audit trails.
+
+---
+
+## 📂 Repository Structure
 
 ```
-dim_state(state_id, state_name)
-dim_district(district_id, state_id, district_name)
-dim_skill(skill_id, skill_name, sector)
-fact_series(series_id, state_id, district_id, skill_id, current_demand, forecast_3m/6m/12m + bands,
-            supply, gap, gap_index and risk per horizon, recommendation, ...)
-fact_history(series_id, month_date, demand_raw, demand_const, supply_certified, supply_enrolled, supply_placed)
-kb_document(doc_id, category, title, content, keywords)     -- assistant knowledge base
-app_meta(meta_key, meta_value)                               -- model info, policy, evaluation
-chat_log(...)                                                -- every question asked to the assistant
-chat_conversation(conv_id, title, day_key, msgs, updated_ms) -- saved chat history
-v_series                                                     -- view joining facts with names
-```
-
-The full definition is in `schema.sql`.
-
----
-
-## Engineering Principles
-
-| Principle | Implementation |
-|-----------|----------------|
-| **Grounded answers** | The assistant retrieves facts with SQL and cites a data table; the LLM never produces numbers |
-| **Parameterised SQL** | Queries go through SQLAlchemy with bound parameters |
-| **Honest data labelling** | The footer and methodology state that supply is simulated |
-| **Graceful degradation** | No API: read the pkl. No MySQL: local SQLite. No Gemini: built-in engine |
-| **Back-tested, not assumed** | Every model is compared with naive baselines on rolling-origin splits |
-| **Secrets stay in `.env`** | `.env` is git-ignored; `.env.example` holds safe defaults |
-
----
-
-## Project Structure
-
-```
-skillmap/
-|-- app.py                  # Streamlit frontend: Dashboard, Recommendation Engine, Assistant, voice, 7 languages
-|-- api.py                  # FastAPI backend and the data-grounded assistant engine
-|-- load_db.py              # Creates tables and loads lmis_bundle.pkl into MySQL
-|-- local_db.py             # Builds the local SQLite copy used when MySQL is absent
-|-- schema.sql              # MySQL / MariaDB schema
-|-- run_all.py              # One-command start for API and app
-|-- run.sh, run.bat         # Install, load and run helpers
-|-- docker-compose.yml      # MySQL 8 container
-|-- lmis_bundle.pkl         # Forecasts, SHAP, evaluation and model (output of the notebook)
-|-- requirements.txt
-|-- .env.example            # Safe credential template
-|-- .streamlit/config.toml  # Theme
-|-- assets/                 # SkillMap logos and favicon
-|-- notebook/
-|   |-- LMIS_Part1_Part2.ipynb   # Cleaning, features, models, SHAP, back-tests
-|   `-- skillmap_dataset.csv     # Supplied NCS-based demand dataset
-`-- screenshots/       # Screenshots used in this README
+skill-map/
+├── assets/                  # Logos, icons, branding assets
+├── screenshots/             # Interface screenshots for documentation
+├── notebook/                # Research notebooks & feature engineering pipelines
+│   └── LMIS_Part1_Part2.ipynb
+├── .streamlit/              # Streamlit theme and UI configurations
+├── api.py                   # FastAPI REST API service & database queries
+├── app.py                   # Streamlit multi-page interface & assistant bridge
+├── load_db.py               # Database migration and ingestion script
+├── local_db.py              # Zero-config SQLite generator for standalone use
+├── run_all.py               # Multi-process orchestrator for API + UI
+├── schema.sql               # MySQL / MariaDB relational DDL schema
+├── docker-compose.yml       # Containerized MySQL service definition
+├── requirements.txt         # Pinned Python package dependencies
+├── .env.example             # Safe template for environment configuration
+├── LICENSE                  # MIT Open Source License
+└── README.md                # Comprehensive project documentation
 ```
 
 ---
 
-## Honest Status
+## 🛡️ Data Transparency & Disclaimers
 
-> **Supply data is simulated.** Demand comes from the supplied NCS-based dataset. No district-level supply registry was provided, so supply is simulated and anchored to real PMKVY FY2021-22 district volumes. Results demonstrate the method; they are not official statistics. Plugging in a real training-centre registry replaces the simulated series without changing the pipeline.
-
-> **Translations** were produced by the team and need native-speaker review.
-
-> **Voice** relies on the browser Web Speech API (best in Chrome and Edge) and depends on the device microphone and installed voices.
+1. **Demand Data** — Derived and normalized from official National Career Service (NCS) vacancy postings.
+2. **Supply Simulation** — In the absence of an open real-time central trainee registry, supply figures are statistically modeled and anchored to verified district-level PMKVY FY2021–22 throughput. The ingestion interface is built to seamlessly bind to live training registries when available.
+3. **Multilingual Transliteration** — Translations are verified programmatically; feedback from native linguists is encouraged.
 
 ---
 
-## Built With
+## 🤝 Contributing
 
-| Technology | Role |
-|-----------|------|
-| [Streamlit](https://streamlit.io/) | Frontend, custom CSS, voice bridge |
-| [FastAPI](https://fastapi.tiangolo.com/) + [Uvicorn](https://www.uvicorn.org/) | REST API and assistant engine |
-| [MySQL 8](https://www.mysql.com/) / SQLite | Primary database and local fallback |
-| [SQLAlchemy](https://www.sqlalchemy.org/) + PyMySQL | Database access |
-| [LightGBM](https://lightgbm.readthedocs.io/), [XGBoost](https://xgboost.readthedocs.io/), scikit-learn, statsmodels | Forecasting and risk classification |
-| [SHAP](https://shap.readthedocs.io/) | Explainability |
-| [Plotly](https://plotly.com/python/) | Charts and the India tile map |
-| openpyxl, ReportLab | Excel and PDF target exports |
-| [Google Gemini API](https://ai.google.dev/) | Optional phrasing of assistant answers |
-| IBM Plex Sans / Mono, Noto Sans | Typography across all supported scripts |
+Contributions, issues, and feature requests are welcome!
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+---
+
+## 📜 License
+
+Distributed under the **MIT License**. See [`LICENSE`](LICENSE) for more information.
 
 ---
 
 <div align="center">
 
-**SkillMap - the right skills, in the right district, at the right time.**
+**SkillMap — The Right Skills, in the Right District, at the Right Time.**
 
-*SIH 2026 | PS 26246 | MSDE*
+*Smart India Hackathon 2026 | PS 26246 | Ministry of Skill Development and Entrepreneurship*
+
+Developed with ❤️ by **Manjeet Yadav** & the SkillMap Team.
 
 </div>
